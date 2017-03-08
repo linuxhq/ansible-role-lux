@@ -32,7 +32,7 @@
 - name: Create temporary package
   tags: lux-release
   get_url:
-    url: "https://www.lux.org/{{ lux_pkg }}-{{ lux_ver }}.noarch.rpm"
+    url: "http://repo.iotti.biz/CentOS/{{ lux_rel }}/noarch/{{ lux_pkg }}-{{ lux_ver }}.noarch.rpm"
     dest: "{{ lux_mktemp.stdout }}"
   register: lux_get_url
   when: lux_mktemp|success

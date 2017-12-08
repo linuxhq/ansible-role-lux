@@ -48,6 +48,7 @@
   when: lux_get_url|success
 
 - name: Acquiring the Lux GPG key
+  tags: lux
   become: true
   rpm_key:
     key: /etc/pki/rpm-gpg/RPM-GPG-KEY-LUX

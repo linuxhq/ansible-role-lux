@@ -1,44 +1,45 @@
 ---
-- name: Assert that prerequisites exist
-  tags: lux-release
+- name: Assert that the prerequisites are defined
+  tags: lux
   assert:
     that:
       - lux_pkg is defined
       - lux_rel is defined
 
-- name: Set lux_ver fact (el7)
-  tags: lux-release
+- name: Setting lux_ver fact (el7)
+  tags: lux
   set_fact:
     lux_ver: "7-1"
   when: lux_rel == '7'
 
-- name: Set lux_ver fact (el6)
-  tags: lux-release
+- name: Setting lux_ver fact (el6)
+  tags: lux
   set_fact:
     lux_ver: "6-3"
   when: lux_rel == '6'
 
-- name: Set lux_ver fact (el5)
-  tags: lux-release
+- name: Setting lux_ver fact (el5)
+  tags: lux
   set_fact:
     lux_ver: "0-1"
   when: lux_rel == '5'
 
-- name: Execute mktemp
-  tags: lux-release
+- name: Generating temporary filename via mktemp
+  tags: lux
   command: mktemp -u --suffix .rpm
   register: lux_mktemp
 
-- name: Create temporary package
-  tags: lux-release
+- name: Downloading package to temporary location
+  tags: lux
   get_url:
-    url: "http://repo.iotti.biz/CentOS/{{ lux_rel }}/noarch/{{ lux_pkg }}-{{ lux_ver }}.noarch.rpm"
     dest: "{{ lux_mktemp.stdout }}"
+    url: "http://repo.iotti.biz/CentOS/{{ lux_rel }}/noarch/{{ lux_pkg }}-{{ lux_ver }}.noarch.rpm"
   register: lux_get_url
   when: lux_mktemp|success
 
-- name: Install lux-release
-  tags: lux-release
+- name: Ensure that the lux-release package is installed
+  tags: lux
+  become: true
   yum:
     name: "{{ item }}"
     state: present
@@ -46,8 +47,15 @@
   with_items: "{{ lux_mktemp.stdout }}"
   when: lux_get_url|success
 
-- name: Configure lux.repo
-  tags: lux-release
+- name: Acquiring the Lux GPG key
+  become: true
+  rpm_key:
+    key: /etc/pki/rpm-gpg/RPM-GPG-KEY-LUX
+    state: present
+
+- name: Applying lux.repo configurations
+  tags: lux
+  become: true
   template:
     src: lux.repo.j2
     dest: /etc/yum.repos.d/lux.repo
@@ -56,8 +64,8 @@
     mode: 0644
   when: lux_yum|success
 
-- name: Erase temporary package
-  tags: lux-release
+- name: Purging temporary package from filesystem
+  tags: lux
   file:
     path: "{{ lux_mktemp.stdout }}"
     state: absent

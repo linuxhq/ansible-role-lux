@@ -47,13 +47,6 @@
   with_items: "{{ lux_mktemp.stdout }}"
   when: lux_get_url|success
 
-- name: Acquiring the Lux GPG key
-  tags: lux
-  become: true
-  rpm_key:
-    key: /etc/pki/rpm-gpg/RPM-GPG-KEY-LUX
-    state: present
-
 - name: Applying lux.repo configurations
   tags: lux
   become: true
@@ -64,6 +57,13 @@
     group: root
     mode: 0644
   when: lux_yum|success
+
+- name: Ensure that the Lux GPG keys are installed
+  tags: lux
+  become: true
+  rpm_key:
+    key: /etc/pki/rpm-gpg/RPM-GPG-KEY-LUX
+    state: present
 
 - name: Purging temporary package from filesystem
   tags: lux

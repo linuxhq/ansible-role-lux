@@ -1,6 +1,10 @@
 ---
+lux_disable_plugin: []
+lux_disablerepo: []
+lux_enable_plugin: []
+lux_enablerepo: []
+lux_packages: []
 lux_pkg: lux-release
 lux_rel: "{{ ansible_distribution_major_version }}"
-lux_repos:
-  lux: False
+lux_repository_lux: false
 ...

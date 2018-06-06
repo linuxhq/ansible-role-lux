@@ -6,48 +6,65 @@
       - lux_pkg is defined
       - lux_rel is defined
 
-- name: Setting lux_ver fact (el7)
-  tags: lux
-  set_fact:
-    lux_ver: "7-1"
-  when: lux_rel == '7'
-
-- name: Setting lux_ver fact (el6)
-  tags: lux
-  set_fact:
-    lux_ver: "6-3"
-  when: lux_rel == '6'
-
-- name: Setting lux_ver fact (el5)
+- name: Attempting to set el5 lux_rel fact
   tags: lux
   set_fact:
     lux_ver: "0-1"
   when: lux_rel == '5'
 
-- name: Generating temporary filename via mktemp
+- name: Attempting to set el6 lux_rel fact
   tags: lux
-  command: mktemp -u --suffix .rpm
-  register: lux_mktemp
+  set_fact:
+    lux_ver: "6-3"
+  when: lux_rel == '6'
 
-- name: Downloading package to temporary location
+- name: Attempting to set el7 lux_rel fact
+  tags: lux
+  set_fact:
+    lux_ver: "7-1"
+  when: lux_rel == '7'
+
+- name: Attempting to generate temporary file
+  tags: lux
+  tempfile:
+    prefix: 'lux.'
+    state: file
+    suffix: '.rpm'
+  register: lux_tempfile
+
+- name: Attempting to download package to temporary location
   tags: lux
   get_url:
-    dest: "{{ lux_mktemp.stdout }}"
+    dest: "{{ lux_tempfile.path }}"
+    force: yes
     url: "http://repo.iotti.biz/CentOS/{{ lux_rel }}/noarch/{{ lux_pkg }}-{{ lux_ver }}.noarch.rpm"
   register: lux_get_url
-  when: lux_mktemp|success
+  when: lux_tempfile is success
 
-- name: Ensure that the lux-release package is installed
+- name: Ensure that the {{ lux_pkg }} package is installed
   tags: lux
   become: true
   yum:
+    disable_plugin: "{{ lux_disable_plugin|join(',') }}"
+    disablerepo: "{{ lux_disablerepo|join(',') }}"
+    enable_plugin: "{{ lux_enable_plugin|join(',') }}"
+    enablerepo: "{{ lux_enablerepo|join(',') }}"
     name: "{{ item }}"
     state: present
   register: lux_yum
-  with_items: "{{ lux_mktemp.stdout }}"
-  when: lux_get_url|success
+  with_items: "{{ lux_tempfile.path }}"
+  when: lux_get_url is success
 
-- name: Applying lux.repo configurations
+- name: Attempting to purge temporary package from the filesystem
+  tags: lux
+  file:
+    path: "{{ lux_tempfile.path }}"
+    state: absent
+  when:
+    - lux_tempfile is success
+    - lux_yum is success
+
+- name: Attempting to overlay lux repository configurations
   tags: lux
   become: true
   template:
@@ -56,21 +73,28 @@
     owner: root
     group: root
     mode: 0644
-  when: lux_yum|success
+  when: lux_yum is success
 
-- name: Ensure that the Lux GPG keys are installed
+- name: Ensure that the lux gpg keys are installed
   tags: lux
   become: true
   rpm_key:
     key: /etc/pki/rpm-gpg/RPM-GPG-KEY-LUX
     state: present
+  when: lux_yum is success
 
-- name: Purging temporary package from filesystem
+- name: Ensure that the required lux packages are installed
   tags: lux
-  file:
-    path: "{{ lux_mktemp.stdout }}"
-    state: absent
+  become: true
+  yum:
+    disable_plugin: "{{ lux_disable_plugin|join(',') }}"
+    disablerepo: "{{ lux_disablerepo|join(',') }}"
+    enable_plugin: "{{ lux_enable_plugin|join(',') }}"
+    enablerepo: "{{ lux_enablerepo|join(',') }}"
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ lux_packages }}"
   when:
-    - lux_mktemp|success
-    - lux_yum|success
+    - lux_packages|length > 0
+    - lux_yum is success
 ...

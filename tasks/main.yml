@@ -68,11 +68,14 @@
   tags: lux
   become: true
   template:
-    src: lux.repo.j2
-    dest: /etc/yum.repos.d/lux.repo
+    src: "{{ item.src }}"
+    dest: "{{ item.dst }}"
     owner: root
     group: root
     mode: 0644
+  with_items:
+    - { src: frank.repo.j2, dst: /etc/yum.repos.d/frank.repo }
+    - { src: lux.repo.j2, dst: /etc/yum.repos.d/lux.repo }
   when: lux_yum is success
 
 - name: Ensure that the lux gpg keys are installed

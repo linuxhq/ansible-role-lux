@@ -21,6 +21,7 @@ Available variables are listed below, along with default values:
     lux_packages: []
     lux_pkg: lux-release
     lux_rel: "{{ ansible_distribution_major_version }}"
+    lux_repository_frank: false
     lux_repository_lux: false
 
 All repositories are disabled by default.

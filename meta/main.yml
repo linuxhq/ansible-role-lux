@@ -1,6 +1,7 @@
 ---
 dependencies: []
 galaxy_info:
+  role_name: lux
   author: tkimball83
   description: RHEL/CentOS - Lux YUM repository
   license: GPLv3
@@ -13,5 +14,4 @@ galaxy_info:
         - 7
   galaxy_tags:
     - lux
-    - yum
 ...

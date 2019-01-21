@@ -49,10 +49,9 @@
     disablerepo: "{{ lux_disablerepo|join(',') }}"
     enable_plugin: "{{ lux_enable_plugin|join(',') }}"
     enablerepo: "{{ lux_enablerepo|join(',') }}"
-    name: "{{ item }}"
+    name: "{{ lux_tempfile.path }}"
     state: present
   register: lux_yum
-  with_items: "{{ lux_tempfile.path }}"
   when: lux_get_url is success
 
 - name: Attempting to purge temporary package from the filesystem
@@ -73,7 +72,7 @@
     owner: root
     group: root
     mode: 0644
-  with_items:
+  loop:
     - { src: frank.repo.j2, dst: /etc/yum.repos.d/frank.repo }
     - { src: lux.repo.j2, dst: /etc/yum.repos.d/lux.repo }
   when: lux_yum is success
@@ -96,7 +95,7 @@
     enablerepo: "{{ lux_enablerepo|join(',') }}"
     name: "{{ item }}"
     state: present
-  with_items: "{{ lux_packages }}"
+  loop: "{{ lux_packages }}"
   when:
     - lux_packages|length > 0
     - lux_yum is success

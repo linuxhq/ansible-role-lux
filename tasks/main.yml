@@ -45,10 +45,10 @@
   tags: lux
   become: true
   yum:
-    disable_plugin: "{{ lux_disable_plugin|join(',') }}"
-    disablerepo: "{{ lux_disablerepo|join(',') }}"
-    enable_plugin: "{{ lux_enable_plugin|join(',') }}"
-    enablerepo: "{{ lux_enablerepo|join(',') }}"
+    disable_plugin: "{{ lux_disable_plugin|join(',') or omit }}"
+    disablerepo: "{{ lux_disablerepo|join(',') or omit }}"
+    enable_plugin: "{{ lux_enable_plugin|join(',') or omit }}"
+    enablerepo: "{{ lux_enablerepo|join(',') or omit }}"
     name: "{{ lux_tempfile.path }}"
     state: present
   register: lux_yum
@@ -91,10 +91,10 @@
   tags: lux
   become: true
   yum:
-    disable_plugin: "{{ lux_disable_plugin|join(',') }}"
-    disablerepo: "{{ lux_disablerepo|join(',') }}"
-    enable_plugin: "{{ lux_enable_plugin|join(',') }}"
-    enablerepo: "{{ lux_enablerepo|join(',') }}"
+    disable_plugin: "{{ lux_disable_plugin|join(',') or omit }}"
+    disablerepo: "{{ lux_disablerepo|join(',') or omit }}"
+    enable_plugin: "{{ lux_enable_plugin|join(',') or omit }}"
+    enablerepo: "{{ lux_enablerepo|join(',') or omit }}"
     name: "{{ item }}"
     state: present
   loop: "{{ lux_packages }}"
